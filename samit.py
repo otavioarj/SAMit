@@ -61,7 +61,6 @@ if len(sys.argv) < 4:
 else:
 	interface = sys.argv[3]
 
-global iface
 iface=interface
 th=Thread(target=arpp,args=(server,client,1))
 # Arp poison =]
