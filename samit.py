@@ -42,7 +42,7 @@ def arpp(target, victim,mode):
 		sendp(poison)
 		if brk:
 			break
-		time.sleep(60) # High delay to have low traffic at tcpdump analysis
+		time.sleep(30) # High delay to have low traffic at tcpdump analysis
 		
 
 
@@ -62,8 +62,9 @@ else:
 	interface = sys.argv[3]
 
 iface=interface
-th=Thread(target=arpp,args=(server,client,1))
 # Arp poison =]
+th=Thread(target=arpp,args=(server,client,1))
+
 try:
 	th.daemon=True
 	th.start()
