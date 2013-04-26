@@ -1,4 +1,4 @@
 SAMit
 =====
 
-Simple ARP Men-in-the-Middle tool using Scarp
+Simple ARP Man-in-the-Middle tool using Scarp
