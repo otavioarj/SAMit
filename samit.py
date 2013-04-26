@@ -1,10 +1,8 @@
+#!/usr/bin/python -O 
 # Simple ARP MitM tool developed as an exercise  
 # Author: Otavio Augusto otavioarj$at$gmail.com
 # At Public Domain if, and only if, the author remain unchanged or a clear reference is made to him =]
 # This code completely depends on Scapy http://www.secdev.org/projects/scapy 
-
-
-#!/usr/bin/env python
 
 from threading import Thread
 import sys, logging
