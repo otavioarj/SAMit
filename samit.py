@@ -3,6 +3,9 @@
 # Author: Otavio Augusto otavioarj$at$gmail.com
 # At Public Domain if, and only if, the author remain unchanged or a clear reference is made to him =]
 # This code completely depends on Scapy http://www.secdev.org/projects/scapy 
+#
+# https://github.com/otavioarj/SAMit
+
 
 from threading import Thread
 import sys, logging
@@ -25,7 +28,7 @@ def pkgchan(pkt):
 		print "[+] Package Temped!"
 
 	#Sending every captured packets, temped or not
-	#pkt.show()
+	pkt.show()
 	sendp(pkt,verbose=0)
 	ltseq=pkt[TCP].seq
 
