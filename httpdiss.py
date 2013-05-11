@@ -1,5 +1,5 @@
 #!/usr/bin/python  
-# Simple ARP MitM tool developed as an exercise  
+# Simple HTTP Dissector tool developed as an exercise  
 # Author: Otavio Augusto otavioarj$at$gmail.com
 # At Public Domain if, and only if, the author remain unchanged or a clear reference is made to him =]
 # This code completely depends on Scapy http://www.secdev.org/projects/scapy 
@@ -53,7 +53,7 @@ def hrequest (src,dst,ack,data):
 	hsession.append(newconn)
 
 def hresponse(seq,data,isdata):
-	for i in range(len(hsession),0):
+	for i in reversed(range(0,len(hsession))):  # Iterate from tail to head, to always match last equal TCP seq, as HTTP can reuse the same TCP conn
 		#print  "%d e %d"%(hsession[i].nextseq, seq)
 		if hsession[i].nextseq == seq:
 			if isdata:
@@ -63,8 +63,8 @@ def hresponse(seq,data,isdata):
 					if '206 (Partial Content)' in data: # Server accepts Partial Content
 						hsession[i].hfile.seek(hsession[i].frange)
 						hsession[i].frange+=len(rdata)
-					if '141.0.168.7' in hsession[i].hfile.name:
-						print "\n Isso\n "+  data+ " \ndeu nisso\n"+rdata # conxao continua viva, assim o prox seq é na verdade *outro* arquivo
+					if '192.168.1.108-93.93.53.194.index.php' in hsession[i].hfile.name:
+						print "\n Isso\n "+  data+ " \ndeu nisso\n"+rdata 
 					hsession[i].hfile.write(rdata)
 			else:
 				hsession[i].hfile.write(data)
