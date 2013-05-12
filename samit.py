@@ -28,7 +28,7 @@ def pkgchan(pkt):
 		print "[+] Package Temped!"
 
 	#Sending every captured packets, temped or not
-	pkt.show()
+	#pkt.show()
 	sendp(pkt,verbose=0)
 	ltseq=pkt[TCP].seq
 

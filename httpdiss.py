@@ -3,7 +3,7 @@
 # Author: Otavio Augusto otavioarj$at$gmail.com
 # At Public Domain if, and only if, the author remain unchanged or a clear reference is made to him =]
 # This code completely depends on Scapy http://www.secdev.org/projects/scapy 
-
+from __future__ import print_function
 import sys, logging, re, time
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import *
@@ -39,7 +39,8 @@ def hrequest (src,dst,ack,data):
 			fname='none'	# Last resource, where no path or file name can be found
 		else:
 			fname=hparse.group(1)
-	fname=fname.split('?',2)[0] 
+	fname=fname.split('?',1)[0]
+	fname=fname.split('&',1)[0]
 	newconn=hstream()
 	newconn.hfile= open(str(src)+"-"+str(dst)+"."+str(fname), "a")
 	if data.find('PUT')==0:  # For PUT, the file is write at request time
@@ -51,6 +52,7 @@ def hrequest (src,dst,ack,data):
 			newconn.frange=partial.group(1) # Store the start of range, to write file according to it
 	newconn.nextseq=ack # Remember that this Ack is the last server side TCP sequence number
 	hsession.append(newconn)
+	print(debug,"\r[+] HTTP Request: ",ack," appended ",end='\r')
 
 
 #HTTP Response Handler
@@ -67,7 +69,8 @@ def hresponse(seq,data,isresp):
 					hsession[i].hfile.write(rdata)
 			else:
 				hsession[i].hfile.write(data)
-			hsession[i].nextseq+=len(data) # Found HTTP Data or not, the next TCP seq from server side is always increased by TCP data length 
+			hsession[i].nextseq+=len(data) # Found HTTP Data or not, the next TCP seq from server side is always increased by TCP data length
+			print("[+] HTTP Response:",seq,"found. Data length:",hsession[i].nextseq-seq,end='\r')
 
 
 #Packet Analyser 
@@ -81,7 +84,7 @@ def pkgan(pkt):
 		rsqt=['OPTIONS','GET','HEAD','POST','PUT','DELETE','TRACE','CONNECT'] 
 		if any(header.find(x)==0 for x in rsqt): # Search for HTTP requests
 			hrequest( pkt[IP].src,pkt[IP].dst,pkt[TCP].ack,data)
-		else: # It's a HTTP responses, as it have a HTTP Header, but not a request ones
+		elif header.find('HTTP')==0: # It's a HTTP responses, as it have a HTTP Header, but not a request ones
 			hresponse(pkt[TCP].seq,data,True)
 	else: # It can be a HTTP response, that will be confirmed only if TCP seqs matches, as it may contain only file data with no HTTP Header
 		hresponse(pkt[TCP].seq,data,False)
@@ -89,20 +92,24 @@ def pkgan(pkt):
 # MAIN
 def main():
 	if len(sys.argv) < 2:
-		print "[*] Usage:", sys.argv[0] ," somefile.cap"
+		print ("[*] Usage:"+ sys.argv[0] +" somefile.cap [optional d for debug]")
 		sys.exit(0)
 
 	fpcap=sys.argv[1]
+	global debug
+	debug=''
+	if len(sys.argv)>2:
+		debug='\n'
 	global hsession
 	hsession=[]
 	try:
-		print "[*] Reading Pcap"
+		print ("[*] Capture file sniffing started")
 # Filtering tcp packages from/to port 80 and where ACK/SYN flags isn't alone on TCP package. That minimize noises for HTTP parser
 		sniff(filter='tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)',prn=pkgan,offline=fpcap)
-	except Exception, e:
-		print "[!] ERROR: %s" % e
+	except Exception , e:
+		print ("\n[!] ERROR: %s",e)
 	finally:
-		print "[*] Ending"
+		print ("\n[*] Ending")
 		for i in range(0,len(hsession)):
 			hsession[i].hfile.close()
 		sys.exit(0)
